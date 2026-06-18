@@ -1,0 +1,34 @@
+@import "tailwindcss";
+
+@theme {
+  --color-base: var(--bg-base);
+  --color-surface: var(--bg-surface);
+  --color-primary: var(--text-primary);
+  --color-muted: var(--text-muted);
+  --color-border: var(--border-color);
+  --color-accent: var(--accent-primary);
+  --color-accent-secondary: var(--accent-secondary);
+}
+
+@layer base {
+
+  :root {
+    /* BTP Command Center Unified Theme */
+    --bg-base: #030a14;
+    --bg-surface: rgba(12, 22, 40, 0.75);
+    --text-primary: #e2e8f0;
+    --text-muted: #64748b;
+    --border-color: #1e293b;
+    --accent-primary: #1d4ed8;
+    --accent-secondary: #f59e0b;
+  }
+
+  html,
+  body {
+    margin: 0;
+    padding: 0;
+    overflow-x: hidden;
+    background-color: var(--bg-base);
+    color: var(--text-primary);
+  }
+}
