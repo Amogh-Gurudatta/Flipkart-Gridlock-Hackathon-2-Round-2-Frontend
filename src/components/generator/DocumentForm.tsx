@@ -1,9 +1,14 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import { CORRIDORS, EVENT_CAUSES, EVENT_TYPES, PRIORITIES } from '@/types/forecast';
-import type { EventRequest } from '@/types/forecast';
-import { useData } from '@/context/DataContext';
+import { useState, useEffect } from "react";
+import {
+  CORRIDORS,
+  EVENT_CAUSES,
+  EVENT_TYPES,
+  PRIORITIES,
+} from "@/types/forecast";
+import type { EventRequest } from "@/types/forecast";
+import { useData } from "@/context/DataContext";
 
 interface DocumentFormProps {
   isSubmitting: boolean;
@@ -14,24 +19,27 @@ interface DocumentFormProps {
 }
 
 const labelStyle = {
-  color: 'var(--text-muted)',
+  color: "var(--text-muted)",
 } as const;
 
 const inputBase = {
-  backgroundColor: 'var(--bg-surface)',
-  color: 'var(--text-primary)',
-  border: '1px solid var(--border-color)',
+  backgroundColor: "var(--bg-surface)",
+  color: "var(--text-primary)",
+  border: "1px solid var(--border-color)",
 } as const;
 
 const SEVERITY_PRIORITY_COLORS: Record<string, string> = {
-  High: '#ef4444',
-  Medium: '#f59e0b',
-  Low: '#22c55e',
+  High: "#ef4444",
+  Medium: "#f59e0b",
+  Low: "#22c55e",
 };
 
 function FieldLabel({ children }: { children: React.ReactNode }) {
   return (
-    <label className="text-[10px] uppercase font-mono tracking-widest" style={labelStyle}>
+    <label
+      className="text-[10px] uppercase font-mono tracking-widest"
+      style={labelStyle}
+    >
       {children}
     </label>
   );
@@ -55,11 +63,17 @@ function SelectInput({
       disabled={disabled}
       className="w-full px-4 py-3 text-sm font-mono outline-none transition-colors duration-200 cursor-pointer appearance-none"
       style={inputBase}
-      onFocus={(e) => { e.target.style.borderColor = 'var(--accent-primary)'; }}
-      onBlur={(e) => { e.target.style.borderColor = 'var(--border-color)'; }}
+      onFocus={(e) => {
+        e.target.style.borderColor = "var(--accent-primary)";
+      }}
+      onBlur={(e) => {
+        e.target.style.borderColor = "var(--border-color)";
+      }}
     >
       {options.map((o) => (
-        <option key={o} value={o} className="bg-[#060d1a]">{o}</option>
+        <option key={o} value={o} className="bg-[#060d1a]">
+          {o}
+        </option>
       ))}
     </select>
   );
@@ -72,14 +86,17 @@ export default function DocumentForm({
   onExportPdf,
   hasForecast,
 }: DocumentFormProps) {
-  const [eventCause, setEventCause] = useState<typeof EVENT_CAUSES[number]>('accident');
-  const [eventType, setEventType] = useState<typeof EVENT_TYPES[number]>('unplanned');
-  const [priority, setPriority] = useState<typeof PRIORITIES[number]>('High');
-  const [corridor, setCorridor] = useState<typeof CORRIDORS[number]>('Tumkur Road');
+  const [eventCause, setEventCause] =
+    useState<(typeof EVENT_CAUSES)[number]>("accident");
+  const [eventType, setEventType] =
+    useState<(typeof EVENT_TYPES)[number]>("unplanned");
+  const [priority, setPriority] = useState<(typeof PRIORITIES)[number]>("High");
+  const [corridor, setCorridor] =
+    useState<(typeof CORRIDORS)[number]>("Tumkur Road");
   const [requiresRoadClosure, setRequiresRoadClosure] = useState(false);
-  const [address, setAddress] = useState('');
-  const [lat, setLat] = useState('');
-  const [lng, setLng] = useState('');
+  const [address, setAddress] = useState("");
+  const [lat, setLat] = useState("");
+  const [lng, setLng] = useState("");
 
   const { draftLocation } = useData();
 
@@ -92,17 +109,21 @@ export default function DocumentForm({
     }
   }, [draftLocation]);
 
-  const focusHandlers = (e: React.FocusEvent<HTMLInputElement | HTMLSelectElement>) => {
-    e.target.style.borderColor = 'var(--accent-primary)';
+  const focusHandlers = (
+    e: React.FocusEvent<HTMLInputElement | HTMLSelectElement>,
+  ) => {
+    e.target.style.borderColor = "var(--accent-primary)";
   };
-  const blurHandlers = (e: React.FocusEvent<HTMLInputElement | HTMLSelectElement>) => {
-    e.target.style.borderColor = 'var(--border-color)';
+  const blurHandlers = (
+    e: React.FocusEvent<HTMLInputElement | HTMLSelectElement>,
+  ) => {
+    e.target.style.borderColor = "var(--border-color)";
   };
 
   const isReady =
     !!address &&
-    lat !== '' &&
-    lng !== '' &&
+    lat !== "" &&
+    lng !== "" &&
     !isNaN(parseFloat(lat)) &&
     !isNaN(parseFloat(lng));
 
@@ -115,7 +136,7 @@ export default function DocumentForm({
       priority,
       corridor,
       requiresRoadClosure,
-      policeStation: 'AUTO_ASSIGNED',
+      policeStation: "AUTO_ASSIGNED",
       location: {
         lat: parseFloat(lat),
         lng: parseFloat(lng),
@@ -125,14 +146,16 @@ export default function DocumentForm({
   };
 
   return (
-    <form onSubmit={handleForecast} className="flex flex-col gap-5 w-full max-w-md">
-
+    <form
+      onSubmit={handleForecast}
+      className="flex flex-col gap-5 w-full max-w-md"
+    >
       {/* Event Cause */}
       <div className="flex flex-col gap-2">
         <FieldLabel>Event Cause</FieldLabel>
         <SelectInput
           value={eventCause}
-          onChange={(v) => setEventCause(v as typeof EVENT_CAUSES[number])}
+          onChange={(v) => setEventCause(v as (typeof EVENT_CAUSES)[number])}
           options={EVENT_CAUSES}
           disabled={forecastPending}
         />
@@ -143,7 +166,7 @@ export default function DocumentForm({
         <FieldLabel>Event Type</FieldLabel>
         <SelectInput
           value={eventType}
-          onChange={(v) => setEventType(v as typeof EVENT_TYPES[number])}
+          onChange={(v) => setEventType(v as (typeof EVENT_TYPES)[number])}
           options={EVENT_TYPES}
           disabled={forecastPending}
         />
@@ -161,9 +184,15 @@ export default function DocumentForm({
               onClick={() => setPriority(p)}
               className="py-2 text-[10px] font-mono font-bold uppercase tracking-wider transition-all duration-150 cursor-pointer disabled:cursor-not-allowed"
               style={{
-                border: `1px solid ${priority === p ? SEVERITY_PRIORITY_COLORS[p] : 'var(--border-color)'}`,
-                backgroundColor: priority === p ? `${SEVERITY_PRIORITY_COLORS[p]}18` : 'var(--bg-surface)',
-                color: priority === p ? SEVERITY_PRIORITY_COLORS[p] : 'var(--text-muted)',
+                border: `1px solid ${priority === p ? SEVERITY_PRIORITY_COLORS[p] : "var(--border-color)"}`,
+                backgroundColor:
+                  priority === p
+                    ? `${SEVERITY_PRIORITY_COLORS[p]}18`
+                    : "var(--bg-surface)",
+                color:
+                  priority === p
+                    ? SEVERITY_PRIORITY_COLORS[p]
+                    : "var(--text-muted)",
                 opacity: forecastPending ? 0.5 : 1,
               }}
             >
@@ -178,7 +207,7 @@ export default function DocumentForm({
         <FieldLabel>Affected Corridor</FieldLabel>
         <SelectInput
           value={corridor}
-          onChange={(v) => setCorridor(v as typeof CORRIDORS[number])}
+          onChange={(v) => setCorridor(v as (typeof CORRIDORS)[number])}
           options={CORRIDORS}
           disabled={forecastPending}
         />
@@ -192,24 +221,28 @@ export default function DocumentForm({
           disabled={forecastPending}
           className="relative w-10 h-5 cursor-pointer shrink-0"
           style={{
-            border: `1px solid ${requiresRoadClosure ? 'var(--accent-primary)' : 'var(--border-color)'}`,
-            backgroundColor: 'transparent',
+            border: `1px solid ${requiresRoadClosure ? "var(--accent-primary)" : "var(--border-color)"}`,
+            backgroundColor: "transparent",
           }}
           aria-label="Toggle road closure"
         >
           <div
             className="absolute top-[2px] h-3 w-4 transition-all duration-200"
             style={{
-              backgroundColor: requiresRoadClosure ? 'var(--accent-primary)' : 'var(--text-muted)',
-              left: requiresRoadClosure ? 'calc(100% - 18px)' : '2px',
+              backgroundColor: requiresRoadClosure
+                ? "var(--accent-primary)"
+                : "var(--text-muted)",
+              left: requiresRoadClosure ? "calc(100% - 18px)" : "2px",
             }}
           />
         </button>
-        <span className="text-[10px] font-mono uppercase tracking-widest" style={labelStyle}>
-          Requires Road Closure {requiresRoadClosure ? '— YES' : '— NO'}
+        <span
+          className="text-[10px] font-mono uppercase tracking-widest"
+          style={labelStyle}
+        >
+          Requires Road Closure {requiresRoadClosure ? "— YES" : "— NO"}
         </span>
       </div>
-
 
       {/* Location Address */}
       <div className="flex flex-col gap-2">
@@ -260,7 +293,10 @@ export default function DocumentForm({
           />
         </div>
       </div>
-      <p className="text-[9px] font-mono tracking-wider" style={{ color: 'var(--text-muted)', marginTop: '-8px' }}>
+      <p
+        className="text-[9px] font-mono tracking-wider"
+        style={{ color: "var(--text-muted)", marginTop: "-8px" }}
+      >
         ✦ Tip: Click on the Live Map to auto-fill coordinates
       </p>
 
@@ -270,33 +306,41 @@ export default function DocumentForm({
         disabled={forecastPending || !isReady}
         className="relative w-full h-14 overflow-hidden mt-2 cursor-pointer disabled:cursor-not-allowed"
         style={{
-          border: '1px solid var(--accent-primary)',
+          border: "1px solid var(--accent-primary)",
           backgroundColor: forecastPending
-            ? 'var(--bg-surface)'
-            : 'color-mix(in srgb, var(--accent-primary) 10%, transparent)',
+            ? "var(--bg-surface)"
+            : "color-mix(in srgb, var(--accent-primary) 10%, transparent)",
         }}
         onMouseEnter={(e) => {
           if (!forecastPending && isReady)
-            e.currentTarget.style.backgroundColor = 'var(--accent-primary)';
+            e.currentTarget.style.backgroundColor = "var(--accent-primary)";
         }}
         onMouseLeave={(e) => {
           e.currentTarget.style.backgroundColor = forecastPending
-            ? 'var(--bg-surface)'
-            : 'color-mix(in srgb, var(--accent-primary) 10%, transparent)';
+            ? "var(--bg-surface)"
+            : "color-mix(in srgb, var(--accent-primary) 10%, transparent)";
         }}
       >
         <span
-          className="text-xs font-mono font-bold uppercase tracking-[0.3em]"
-          style={{ color: forecastPending || !isReady ? 'var(--text-muted)' : 'var(--accent-primary)' }}
+          className="text-xs font-mono font-bold uppercase tracking-[0.15em] relative z-10"
+          style={{
+            color:
+              forecastPending || !isReady
+                ? "var(--text-muted)"
+                : "var(--accent-primary)",
+          }}
         >
-          {forecastPending ? 'Running Forecast...' : 'Get AI Forecast'}
+          {/* 1. THE TEXT FIX */}
+          {forecastPending ? "Waking ML Engine (~50s)..." : "Get AI Forecast"}
         </span>
         {forecastPending && (
           <div
-            className="absolute top-0 left-0 h-full"
+            className="absolute top-0 left-0 h-full z-0"
             style={{
-              backgroundColor: 'color-mix(in srgb, var(--accent-primary) 40%, transparent)',
-              animation: 'fillProgress 3s linear forwards',
+              backgroundColor:
+                "color-mix(in srgb, var(--accent-primary) 40%, transparent)",
+              /* 2. THE ANIMATION FIX: Changed 'forwards' to 'infinite' so it loops */
+              animation: "fillProgress 2.5s ease-in-out infinite",
             }}
           />
         )}
@@ -310,15 +354,15 @@ export default function DocumentForm({
           disabled={isSubmitting}
           className="relative w-full h-12 overflow-hidden cursor-pointer disabled:cursor-not-allowed transition-opacity duration-150 hover:opacity-80"
           style={{
-            border: '1px solid #22c55e',
-            backgroundColor: 'rgba(34,197,94,0.08)',
+            border: "1px solid #22c55e",
+            backgroundColor: "rgba(34,197,94,0.08)",
           }}
         >
           <span
             className="text-xs font-mono font-bold uppercase tracking-[0.3em]"
-            style={{ color: isSubmitting ? 'var(--text-muted)' : '#22c55e' }}
+            style={{ color: isSubmitting ? "var(--text-muted)" : "#22c55e" }}
           >
-            {isSubmitting ? 'GENERATING PDF...' : 'Export Deployment Order'}
+            {isSubmitting ? "GENERATING PDF..." : "Export Deployment Order"}
           </span>
         </button>
       )}
