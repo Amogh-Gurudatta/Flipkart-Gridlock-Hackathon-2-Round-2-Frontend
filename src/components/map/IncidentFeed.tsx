@@ -1,9 +1,8 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState } from 'react';
 import { useData, type IncidentData } from '@/context/DataContext';
 import { Crosshair, ChevronDown, ChevronUp, AlertTriangle } from 'lucide-react';
-import { toast } from 'sonner';
 import dynamic from 'next/dynamic';
 
 // Dynamically import recharts-based chart (avoids SSR issues)
@@ -33,57 +32,18 @@ const SEVERITY_BADGE_COLORS: Record<string, { color: string; bg: string; border:
   LOW:      { color: '#22c55e', bg: '#22c55e15', border: '#22c55e' },
 };
 
-/** Fires a styled sonner toast for CRITICAL / HIGH severity events */
-function fireAlertToast(node: IncidentData) {
-  const isCritical = node.severity_level === 'CRITICAL';
-  const duration = node.estimated_duration_mins;
-  const msg = `${node.severity_level} ALERT: ${node.incident_type} detected at ${node.address ?? node.title}. Severe congestion predicted${duration ? ` for the next ${duration} minutes` : ''}.`;
 
-  if (isCritical) {
-    toast.error(msg, {
-      duration: 6000,
-      className: 'font-mono uppercase text-[10px] tracking-wider',
-      icon: '🚨',
-    });
-  } else {
-    toast.warning(msg, {
-      duration: 5000,
-      className: 'font-mono uppercase text-[10px] tracking-wider',
-      icon: '⚠️',
-    });
-  }
-}
 
 export default function IncidentFeed({ onSelectNode, activeId }: IncidentFeedProps) {
   const { incidents } = useData();
   const [isExpanded, setIsExpanded] = useState(false);
 
-  // Track which IDs have already triggered a toast (avoid repeat-firing on re-render)
-  const alertedIds = useRef<Set<string>>(new Set());
 
-  // Fire alerts on initial load for any pre-loaded CRITICAL / HIGH events
-  useEffect(() => {
-    incidents.forEach((node) => {
-      if (
-        (node.severity_level === 'CRITICAL' || node.severity_level === 'HIGH') &&
-        !alertedIds.current.has(node.id)
-      ) {
-        alertedIds.current.add(node.id);
-        // Stagger toasts so they don't all fire at t=0
-        const delay = Array.from(alertedIds.current).indexOf(node.id) * 800;
-        setTimeout(() => fireAlertToast(node), delay);
-      }
-    });
-  }, [incidents]);
 
   const activeNode = incidents.find((n) => n.id === activeId) ?? null;
 
   const handleSelect = (node: IncidentData) => {
     onSelectNode(node);
-    // Fire toast on click too (only for high-severity events that haven't been alerted)
-    if (node.severity_level === 'CRITICAL' || node.severity_level === 'HIGH') {
-      fireAlertToast(node);
-    }
   };
 
   return (

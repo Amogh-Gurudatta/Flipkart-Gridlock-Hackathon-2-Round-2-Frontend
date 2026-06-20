@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useMemo } from 'react';
-import { MOCK_BTP_EVENTS, type BTPEvent } from '@/lib/mockBTPData';
+import { useData, type IncidentData } from '@/context/DataContext';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Search, SortAsc, SortDesc, MapPin, Clock, Users, Shield } from 'lucide-react';
 
@@ -50,41 +50,42 @@ function StatCard({ icon: Icon, label, value, color }: {
 
 // ── Main page ─────────────────────────────────────────────────────────────────
 export default function DispatchLogsPage() {
+  const { incidents } = useData();
   const [query, setQuery] = useState('');
   const [severityFilter, setSeverityFilter] = useState<SeverityFilter>('ALL');
   const [sortOrder, setSortOrder] = useState<'DURATION_ASC' | 'DURATION_DESC' | 'SEVERITY'>('SEVERITY');
 
   const SEVERITY_RANK: Record<string, number> = { CRITICAL: 4, HIGH: 3, MODERATE: 2, LOW: 1 };
 
-  const filtered = useMemo<BTPEvent[]>(() => {
+  const filtered = useMemo<IncidentData[]>(() => {
     const q = query.toLowerCase();
-    const result = MOCK_BTP_EVENTS.filter((ev) => {
+    const result = incidents.filter((ev) => {
       const matchesQuery =
-        ev.event_id.toLowerCase().includes(q) ||
-        ev.location.address.toLowerCase().includes(q) ||
-        ev.cause.toLowerCase().includes(q);
+        ev.id.toLowerCase().includes(q) ||
+        (ev.address ?? '').toLowerCase().includes(q) ||
+        ev.incident_type.toLowerCase().includes(q);
       const matchesSeverity =
-        severityFilter === 'ALL' || ev.predictions.severity_level === severityFilter;
+        severityFilter === 'ALL' || ev.severity_level === severityFilter;
       return matchesQuery && matchesSeverity;
     });
 
     result.sort((a, b) => {
       if (sortOrder === 'SEVERITY') {
-        return (SEVERITY_RANK[b.predictions.severity_level] ?? 0) -
-               (SEVERITY_RANK[a.predictions.severity_level] ?? 0);
+        return (SEVERITY_RANK[b.severity_level ?? ''] ?? 0) -
+               (SEVERITY_RANK[a.severity_level ?? ''] ?? 0);
       }
-      const diff = a.predictions.estimated_duration_mins - b.predictions.estimated_duration_mins;
+      const diff = (a.estimated_duration_mins ?? 0) - (b.estimated_duration_mins ?? 0);
       return sortOrder === 'DURATION_ASC' ? diff : -diff;
     });
 
     return result;
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [query, severityFilter, sortOrder]);
+  }, [query, severityFilter, sortOrder, incidents]);
 
   // Aggregate stats
-  const totalCops = MOCK_BTP_EVENTS.reduce((s, e) => s + e.deployment_recommendation.traffic_cops_needed, 0);
-  const totalBarricades = MOCK_BTP_EVENTS.reduce((s, e) => s + e.deployment_recommendation.barricades, 0);
-  const criticalCount = MOCK_BTP_EVENTS.filter(e => e.predictions.severity_level === 'CRITICAL').length;
+  const totalCops = incidents.reduce((s, e) => s + (e.traffic_cops_needed ?? 0), 0);
+  const totalBarricades = incidents.reduce((s, e) => s + (e.barricades ?? 0), 0);
+  const criticalCount = incidents.filter(e => e.severity_level === 'CRITICAL').length;
 
   return (
     <div
@@ -108,7 +109,7 @@ export default function DispatchLogsPage() {
 
         {/* ── Summary Stats ────────────────────────────────────────────── */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-          <StatCard icon={Shield}  label="Total Events"   value={MOCK_BTP_EVENTS.length} color="#1d4ed8" />
+          <StatCard icon={Shield}  label="Total Events"   value={incidents.length} color="#1d4ed8" />
           <StatCard icon={Shield}  label="Critical Alerts" value={criticalCount}          color="#ef4444" />
           <StatCard icon={Users}   label="Officers Req."   value={`${totalCops} officers`} color="#f59e0b" />
           <StatCard icon={Shield}  label="Barricades Req." value={`${totalBarricades} units`} color="#22c55e" />
@@ -210,7 +211,7 @@ export default function DispatchLogsPage() {
                 {filtered.length > 0 ? (
                   filtered.map((ev, i) => (
                     <motion.tr
-                      key={ev.event_id}
+                      key={ev.id}
                       initial={{ opacity: 0, y: -6 }}
                       animate={{ opacity: 1, y: 0 }}
                       exit={{ opacity: 0, x: 10 }}
@@ -227,13 +228,13 @@ export default function DispatchLogsPage() {
                           className="text-xs font-bold tracking-wider"
                           style={{ color: 'var(--accent-primary)' }}
                         >
-                          {ev.event_id}
+                          {ev.id}
                         </span>
                       </td>
 
                       {/* Cause */}
                       <td className="p-4 text-xs" style={{ color: 'var(--text-primary)' }}>
-                        {ev.cause}
+                        {ev.incident_type}
                       </td>
 
                       {/* Location */}
@@ -243,20 +244,20 @@ export default function DispatchLogsPage() {
                           style={{ color: 'var(--text-muted)' }}
                         >
                           <MapPin size={10} style={{ color: 'var(--accent-primary)', flexShrink: 0 }} />
-                          {ev.location.address}
+                          {ev.address}
                         </span>
                       </td>
 
                       {/* Severity */}
                       <td className="p-4">
-                        <SeverityBadge level={ev.predictions.severity_level} />
+                        <SeverityBadge level={ev.severity_level ?? 'LOW'} />
                       </td>
 
                       {/* Est. Duration */}
                       <td className="p-4 text-right">
                         <span className="flex items-center justify-end gap-1.5 text-[10px]" style={{ color: 'var(--text-muted)' }}>
                           <Clock size={10} style={{ flexShrink: 0 }} />
-                          {ev.predictions.estimated_duration_mins} min
+                          {ev.estimated_duration_mins} min
                         </span>
                       </td>
 
@@ -267,14 +268,14 @@ export default function DispatchLogsPage() {
                             className="text-[10px] font-bold"
                             style={{ color: 'var(--text-primary)' }}
                           >
-                            {ev.deployment_recommendation.traffic_cops_needed} Cops,&nbsp;
-                            {ev.deployment_recommendation.barricades} Barricades
+                            {ev.traffic_cops_needed} Cops,&nbsp;
+                            {ev.barricades} Barricades
                           </span>
                           <span
                             className="text-[9px] leading-snug max-w-[200px] text-right"
                             style={{ color: 'var(--text-muted)' }}
                           >
-                            {ev.deployment_recommendation.diversion_route}
+                            {ev.diversion_route}
                           </span>
                         </div>
                       </td>
@@ -301,7 +302,7 @@ export default function DispatchLogsPage() {
           className="text-[9px] font-mono uppercase tracking-widest text-right"
           style={{ color: 'var(--text-muted)' }}
         >
-          Showing {filtered.length} of {MOCK_BTP_EVENTS.length} events
+          Showing {filtered.length} of {incidents.length} events
         </p>
 
       </div>

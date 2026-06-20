@@ -6,24 +6,63 @@ import LivePreview from '@/components/generator/LivePreview';
 import html2canvas from 'html2canvas';
 import { jsPDF } from 'jspdf';
 import { toast } from 'sonner';
+import { useData } from '@/context/DataContext';
+import type { EventRequest, ForecastResponse } from '@/types/forecast';
+
+const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:8000';
 
 export default function GeneratorPage() {
-  const [eventId, setEventId] = useState('');
-  const [eventCause, setEventCause] = useState('');
-  const [locationAddress, setLocationAddress] = useState('');
-  const [predictedDuration, setPredictedDuration] = useState(60);
-  const [severityLevel, setSeverityLevel] = useState<'LOW' | 'MODERATE' | 'HIGH' | 'CRITICAL'>('MODERATE');
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const { setLastForecast } = useData();
+  const [forecast, setForecast] = useState<ForecastResponse | null>(null);
+  const [forecastPending, setForecastPending] = useState(false);
+  const [isExporting, setIsExporting] = useState(false);
 
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    if (!eventId || !eventCause || !locationAddress || isSubmitting) return;
+  // ── Step 1: Call the backend and get a real forecast ──────────────────────
+  const handleForecast = async (req: EventRequest) => {
+    setForecastPending(true);
+    setForecast(null);
 
-    setIsSubmitting(true);
-
-    // Subtle confirmation audio cue (Web Audio API — no external assets needed)
     try {
-      const AudioCtx = (window.AudioContext || (window as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext)!;
+      const res = await fetch(`${API_URL}/api/v1/forecast`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(req),
+      });
+
+      if (!res.ok) {
+        const body = await res.text();
+        throw new Error(`Server returned ${res.status}: ${body}`);
+      }
+
+      const data: ForecastResponse = await res.json();
+      setForecast(data);
+      setLastForecast(data); // push to DataContext → MapWidget renders the overlay
+
+      toast.success('FORECAST RECEIVED', {
+        description: `Event ${data.event_id} — ${data.predictions.severity_level} severity, ~${Math.round(data.predictions.estimated_duration_mins)} min`,
+        className: 'font-mono uppercase text-xs',
+      });
+    } catch (err) {
+      console.error('Forecast failed', err);
+      toast.error('FORECAST FAILED', {
+        description: err instanceof Error ? err.message : 'Backend unreachable.',
+        className: 'font-mono uppercase text-xs',
+      });
+    } finally {
+      setForecastPending(false);
+    }
+  };
+
+  // ── Step 2: Export the filled-in preview as a PDF ────────────────────────
+  const handleExportPdf = async () => {
+    if (!forecast || isExporting) return;
+    setIsExporting(true);
+
+    // Subtle audio confirmation cue (Web Audio API)
+    try {
+      const AudioCtx =
+        (window.AudioContext ||
+          (window as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext)!;
       const audioCtx = new AudioCtx();
       const osc = audioCtx.createOscillator();
       osc.type = 'sine';
@@ -33,65 +72,50 @@ export default function GeneratorPage() {
       osc.start();
       osc.stop(audioCtx.currentTime + 0.12);
     } catch {
-      // Ignore if Audio API is blocked
+      // ignore
     }
 
-    // PDF Generation
     try {
       const docElement = document.getElementById('warrant-document');
-      if (docElement) {
-        const canvas = await html2canvas(docElement, {
-          scale: 2,
-          useCORS: true,
-          backgroundColor: '#060d1a',
-        });
+      if (!docElement) throw new Error('Preview element not found');
 
-        const imgData = canvas.toDataURL('image/png');
+      const canvas = await html2canvas(docElement, {
+        scale: 2,
+        useCORS: true,
+        backgroundColor: '#060d1a',
+      });
 
-        const pdf = new jsPDF({
-          orientation: 'portrait',
-          unit: 'mm',
-          format: 'a4',
-        });
+      const imgData = canvas.toDataURL('image/png');
+      const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
 
-        const pageWidth = pdf.internal.pageSize.getWidth();
-        const pageHeight = pdf.internal.pageSize.getHeight();
-
-        const margin = 10;
-        const maxWidth = pageWidth - margin * 2;
-        const maxHeight = pageHeight - margin * 2;
-
-        let finalWidth = maxWidth;
-        let finalHeight = (canvas.height * maxWidth) / canvas.width;
-
-        if (finalHeight > maxHeight) {
-          finalHeight = maxHeight;
-          finalWidth = (canvas.width * maxHeight) / canvas.height;
-        }
-
-        const xOffset = (pageWidth - finalWidth) / 2;
-        const yOffset = (pageHeight - finalHeight) / 2;
-
-        pdf.addImage(imgData, 'PNG', xOffset, yOffset, finalWidth, finalHeight);
-        pdf.save('BTP_Deployment_Order.pdf');
-
-        toast.success('DEPLOYMENT ORDER EXPORTED', {
-          description: `${eventId} — ${eventCause} saved as BTP_Deployment_Order.pdf`,
-          className: 'font-mono uppercase text-xs',
-        });
+      const pageWidth = pdf.internal.pageSize.getWidth();
+      const pageHeight = pdf.internal.pageSize.getHeight();
+      const margin = 10;
+      const maxWidth = pageWidth - margin * 2;
+      const maxHeight = pageHeight - margin * 2;
+      let finalWidth = maxWidth;
+      let finalHeight = (canvas.height * maxWidth) / canvas.width;
+      if (finalHeight > maxHeight) {
+        finalHeight = maxHeight;
+        finalWidth = (canvas.width * maxHeight) / canvas.height;
       }
+
+      pdf.addImage(imgData, 'PNG', (pageWidth - finalWidth) / 2, (pageHeight - finalHeight) / 2, finalWidth, finalHeight);
+      pdf.save(`BTP_Deployment_Order_${forecast.event_id}.pdf`);
+
+      toast.success('DEPLOYMENT ORDER EXPORTED', {
+        description: `${forecast.event_id} saved as PDF`,
+        className: 'font-mono uppercase text-xs',
+      });
     } catch (error) {
       console.error('PDF Generation failed', error);
       toast.error('PDF EXPORT FAILED', {
         description: 'Could not generate document. Try again.',
         className: 'font-mono uppercase text-xs',
       });
+    } finally {
+      setTimeout(() => setIsExporting(false), 2000);
     }
-
-    // Reset after 2 seconds
-    setTimeout(() => {
-      setIsSubmitting(false);
-    }, 2000);
   };
 
   return (
@@ -113,7 +137,7 @@ export default function GeneratorPage() {
             className="text-xs font-mono tracking-widest uppercase opacity-70"
             style={{ color: 'var(--text-muted)' }}
           >
-            Draft and export an official BTP Traffic Event Deployment Order.
+            Submit an event to the AI forecast engine, then export an official BTP Deployment Order.
           </p>
         </div>
 
@@ -123,30 +147,17 @@ export default function GeneratorPage() {
           {/* Left: Form */}
           <div className="flex flex-col h-full w-full">
             <DocumentForm
-              eventId={eventId}
-              setEventId={setEventId}
-              eventCause={eventCause}
-              setEventCause={setEventCause}
-              locationAddress={locationAddress}
-              setLocationAddress={setLocationAddress}
-              predictedDuration={predictedDuration}
-              setPredictedDuration={setPredictedDuration}
-              severityLevel={severityLevel}
-              setSeverityLevel={setSeverityLevel}
-              isSubmitting={isSubmitting}
-              onSubmit={handleSubmit}
+              isSubmitting={isExporting}
+              forecastPending={forecastPending}
+              onForecast={handleForecast}
+              onExportPdf={handleExportPdf}
+              hasForecast={forecast !== null}
             />
           </div>
 
           {/* Right: Live Preview */}
           <div className="flex flex-col w-full items-center lg:justify-center pt-2 lg:pt-0 lg:sticky lg:top-24 relative z-0">
-            <LivePreview
-              eventId={eventId}
-              eventCause={eventCause}
-              locationAddress={locationAddress}
-              predictedDuration={predictedDuration}
-              severityLevel={severityLevel}
-            />
+            <LivePreview forecast={forecast} />
           </div>
 
         </div>

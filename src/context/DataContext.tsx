@@ -1,8 +1,7 @@
 'use client';
 
-import React, { createContext, useContext, useState, useCallback, ReactNode, useEffect } from 'react';
-import { usePathname } from 'next/navigation';
-import { MOCK_BTP_EVENTS, type BTPEvent } from '@/lib/mockBTPData';
+import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
+import type { ForecastResponse } from '@/types/forecast';
 
 // Maps the BTPEvent schema to the IncidentData shape used across the UI
 export interface IncidentData {
@@ -19,19 +18,28 @@ export interface IncidentData {
   severity_level?: string;
   traffic_cops_needed?: number;
   barricades?: number;
+  cranes?: number;
   diversion_route?: string;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   [key: string]: any;
 }
 
 interface DataContextType {
+  /** Mock + live incidents shown on the map */
   incidents: IncidentData[];
+  /**
+   * The most recently received ForecastResponse from POST /api/v1/forecast.
+   * Set here so any component (e.g. MapWidget) can render the diversion path
+   * and impact polygon without prop drilling through every page.
+   */
+  lastForecast: ForecastResponse | null;
+  setLastForecast: (f: ForecastResponse | null) => void;
 }
 
 const DataContext = createContext<DataContextType | undefined>(undefined);
 
-/** Converts a BTPEvent to the IncidentData shape used by the map and feed */
-function mapBTPEventToIncident(event: BTPEvent): IncidentData {
+/** Converts a ForecastResponse to the IncidentData shape used by the map and feed */
+function mapForecastToIncident(event: ForecastResponse): IncidentData {
   const severityMap: Record<string, number> = {
     LOW: 3,
     MODERATE: 5,
@@ -52,61 +60,28 @@ function mapBTPEventToIncident(event: BTPEvent): IncidentData {
     severity_level: event.predictions.severity_level,
     traffic_cops_needed: event.deployment_recommendation.traffic_cops_needed,
     barricades: event.deployment_recommendation.barricades,
+    cranes: event.deployment_recommendation.cranes ?? 0,
     diversion_route: event.deployment_recommendation.diversion_route,
   };
 }
 
 export function DataProvider({ children }: { children: ReactNode }) {
-  const pathname = usePathname();
-
-  // Incidents are seeded from mock BTP data; will be replaced by live API later
-  const [incidents] = useState<IncidentData[]>(
-    MOCK_BTP_EVENTS.map(mapBTPEventToIncident)
-  );
-
-
-
-  const refreshData = useCallback(async () => {
-    try {
-      // NOTE: Incidents are served from mockBTPData for now.
-      // When the Python backend is ready, replace with:
-      //   const incidentsRes = await apiFetch('/incidents/');
-      //   if (incidentsRes?.ok) {
-      //     const data = await incidentsRes.json();
-      //     setIncidents(Array.isArray(data) ? data.map(mapBTPEventToIncident) : []);
-      //   }
-    } catch (error) {
-      console.error('Data refresh cycle failed:', error);
-    }
-  }, []);
+  const [incidents, setIncidents] = useState<IncidentData[]>([]);
+  const [lastForecast, setLastForecast] = useState<ForecastResponse | null>(null);
 
   useEffect(() => {
-    let intervalId: NodeJS.Timeout;
-
-    const tick = () => {
-      const hasToken = typeof window !== 'undefined' && localStorage.getItem('access');
-      if (hasToken) {
-        refreshData();
-      } else {
-        clearInterval(intervalId);
-      }
-    };
-
-    const initialToken = typeof window !== 'undefined' && localStorage.getItem('access');
-    if (initialToken) {
-      refreshData();
-      intervalId = setInterval(tick, 5000);
+    if (lastForecast) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setIncidents((prev) => {
+        // Prevent duplicate appending if the same forecast object is passed
+        if (prev.find(i => i.id === lastForecast.event_id)) return prev;
+        return [mapForecastToIncident(lastForecast), ...prev];
+      });
     }
-
-    return () => clearInterval(intervalId);
-  }, [refreshData, pathname]);
+  }, [lastForecast]);
 
   return (
-    <DataContext.Provider
-      value={{
-        incidents,
-      }}
-    >
+    <DataContext.Provider value={{ incidents, lastForecast, setLastForecast }}>
       {children}
     </DataContext.Provider>
   );

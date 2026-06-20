@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect } from 'react';
-import { MapContainer, TileLayer, CircleMarker, Tooltip, useMap } from 'react-leaflet';
+import { MapContainer, TileLayer, CircleMarker, Tooltip, useMap, GeoJSON } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import { useData, type IncidentData } from '@/context/DataContext';
 
@@ -32,10 +32,11 @@ export default function MapWidget({
   onSelectNode,
   accentColor,
 }: MapWidgetProps) {
-  const { incidents } = useData();
+  const { incidents, lastForecast } = useData();
 
   // Bengaluru, India center
   const initialCenter: [number, number] = [12.9716, 77.5946];
+
   return (
     <div className="absolute inset-0 w-full h-full bg-black z-0">
       <MapContainer
@@ -52,6 +53,7 @@ export default function MapWidget({
 
         <MapController activeNode={activeNode} />
 
+        {/* ── Mock incident markers ─────────────────────────────────────── */}
         {incidents.map((node) => {
           const isActive = activeNode?.id === node.id;
           return (
@@ -77,6 +79,25 @@ export default function MapWidget({
             </CircleMarker>
           );
         })}
+
+        {/* ── Live forecast: spatial impact zone (polygon from backend) ─── */}
+        {lastForecast?.spatial_impact_geojson && (
+          <GeoJSON
+            // key forces re-render whenever the forecast changes
+            key={`impact-${lastForecast.event_id}`}
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            data={lastForecast.spatial_impact_geojson as any}
+            style={{
+              color: '#ef4444',
+              weight: 1.5,
+              fillColor: '#ef4444',
+              fillOpacity: 0.12,
+              dashArray: '4 4',
+            }}
+          />
+        )}
+
+
       </MapContainer>
     </div>
   );
