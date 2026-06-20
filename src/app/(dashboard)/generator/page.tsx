@@ -156,7 +156,7 @@ export default function GeneratorPage() {
           </div>
 
           {/* Right: Live Preview */}
-          <div className="flex flex-col w-full items-center lg:justify-center pt-2 lg:pt-0 lg:sticky lg:top-24 relative z-0">
+          <div className="flex flex-col w-full items-center lg:sticky lg:top-24 relative z-0 h-full overflow-y-auto pb-32">
             <LivePreview forecast={forecast} />
           </div>
 

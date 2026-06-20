@@ -28,6 +28,8 @@ export interface ForecastResponse {
     cranes: number;
     diversion_route: string;
     diversion_geometry: GeoJsonLineString | null;
+    needs_backup: boolean;
+    responding_station: string;
   };
   spatial_impact_geojson: GeoJsonPolygon | null;
 }
@@ -74,3 +76,4 @@ export const EVENT_CAUSES = [
 export const EVENT_TYPES = ['unplanned', 'planned'] as const;
 
 export const PRIORITIES = ['Low', 'Medium', 'High'] as const;
+

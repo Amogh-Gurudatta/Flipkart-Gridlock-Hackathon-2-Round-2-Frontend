@@ -1,8 +1,9 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { CORRIDORS, EVENT_CAUSES, EVENT_TYPES, PRIORITIES } from '@/types/forecast';
 import type { EventRequest } from '@/types/forecast';
+import { useData } from '@/context/DataContext';
 
 interface DocumentFormProps {
   isSubmitting: boolean;
@@ -76,10 +77,20 @@ export default function DocumentForm({
   const [priority, setPriority] = useState<typeof PRIORITIES[number]>('High');
   const [corridor, setCorridor] = useState<typeof CORRIDORS[number]>('Tumkur Road');
   const [requiresRoadClosure, setRequiresRoadClosure] = useState(false);
-  const [policeStation, setPoliceStation] = useState('');
   const [address, setAddress] = useState('');
   const [lat, setLat] = useState('');
   const [lng, setLng] = useState('');
+
+  const { draftLocation } = useData();
+
+  // Auto-fill coordinates whenever the user clicks on the live map
+  useEffect(() => {
+    if (draftLocation) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setLat(draftLocation.lat.toFixed(6));
+      setLng(draftLocation.lng.toFixed(6));
+    }
+  }, [draftLocation]);
 
   const focusHandlers = (e: React.FocusEvent<HTMLInputElement | HTMLSelectElement>) => {
     e.target.style.borderColor = 'var(--accent-primary)';
@@ -90,7 +101,6 @@ export default function DocumentForm({
 
   const isReady =
     !!address &&
-    !!policeStation &&
     lat !== '' &&
     lng !== '' &&
     !isNaN(parseFloat(lat)) &&
@@ -105,7 +115,7 @@ export default function DocumentForm({
       priority,
       corridor,
       requiresRoadClosure,
-      policeStation,
+      policeStation: 'AUTO_ASSIGNED',
       location: {
         lat: parseFloat(lat),
         lng: parseFloat(lng),
@@ -200,21 +210,6 @@ export default function DocumentForm({
         </span>
       </div>
 
-      {/* Police Station */}
-      <div className="flex flex-col gap-2">
-        <FieldLabel>Nearest Police Station</FieldLabel>
-        <input
-          type="text"
-          value={policeStation}
-          onChange={(e) => setPoliceStation(e.target.value)}
-          disabled={forecastPending}
-          placeholder="e.g. Peenya Police Station"
-          className="w-full px-4 py-3 text-sm font-mono outline-none transition-colors duration-200"
-          style={{ ...inputBase, opacity: forecastPending ? 0.5 : 1 }}
-          onFocus={focusHandlers}
-          onBlur={blurHandlers}
-        />
-      </div>
 
       {/* Location Address */}
       <div className="flex flex-col gap-2">
@@ -265,6 +260,9 @@ export default function DocumentForm({
           />
         </div>
       </div>
+      <p className="text-[9px] font-mono tracking-wider" style={{ color: 'var(--text-muted)', marginTop: '-8px' }}>
+        ✦ Tip: Click on the Live Map to auto-fill coordinates
+      </p>
 
       {/* Get Forecast */}
       <button

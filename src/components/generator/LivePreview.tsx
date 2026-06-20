@@ -70,15 +70,15 @@ export default function LivePreview({ forecast }: LivePreviewProps) {
           aspectRatio: '1 / 1.414',
           backgroundColor: '#060d1a',
           border: '2px solid #1e3a5f',
-          fontSize: 'clamp(7px, 2vw, 13px)',
+          fontSize: 'clamp(7px, 1.8vw, 12px)',
         }}
       >
         {/* Watermark */}
         <div
-          className="absolute inset-0 flex items-center justify-center font-bold tracking-tighter pointer-events-none"
-          style={{ color: '#1d4ed8', fontSize: '10em', opacity: 0.04 }}
+          className="absolute inset-[-50%] flex items-center justify-center font-bold tracking-[0.25em] pointer-events-none whitespace-nowrap select-none"
+          style={{ color: '#1d4ed8', fontSize: '2.4em', opacity: 0.04, transform: 'rotate(-45deg)' }}
         >
-          BTP
+          BENGALURU TRAFFIC POLICE
         </div>
 
         <div className="relative z-10 flex-1 flex flex-col h-full overflow-hidden gap-[4%]">
@@ -123,7 +123,7 @@ export default function LivePreview({ forecast }: LivePreviewProps) {
             <div className="font-mono uppercase tracking-widest mb-[3%]" style={{ color: '#475569', fontSize: '0.65em' }}>
               ▸ EVENT DETAILS
             </div>
-            <div className="flex flex-col gap-[1.5em]">
+            <div className="flex flex-col gap-[0.9em]">
               <Row label="Cause" value={forecast?.cause ?? '—'} />
               <Row label="Location" value={forecast?.location.address ?? '—'} />
               <Row label="Coordinates" value={forecast ? `${forecast.location.lat.toFixed(4)}° N, ${forecast.location.lng.toFixed(4)}° E` : '—'} />
@@ -163,7 +163,7 @@ export default function LivePreview({ forecast }: LivePreviewProps) {
             <div className="font-mono uppercase tracking-widest mb-[3%]" style={{ color: '#3b82f6', fontSize: '0.65em' }}>
               ▸ DEPLOYMENT RECOMMENDATIONS
             </div>
-            <div className="flex flex-col gap-[1.5em]">
+            <div className="flex flex-col gap-[0.9em]">
               <Row
                 label="Traffic Cops"
                 value={forecast ? `${forecast.deployment_recommendation.traffic_cops_needed} officers` : '—'}
@@ -194,6 +194,31 @@ export default function LivePreview({ forecast }: LivePreviewProps) {
                   {forecast?.deployment_recommendation.diversion_route ?? 'STANDBY'}
                 </span>
               </div>
+
+              {/* Responding station */}
+              <Row
+                label="Responding Station"
+                value={forecast?.deployment_recommendation.responding_station ?? '—'}
+              />
+
+              {/* Multi-jurisdiction backup alert */}
+              {forecast?.deployment_recommendation.needs_backup && (
+                <div
+                  className="flex items-center gap-2 p-[2%] mt-[1%]"
+                  style={{
+                    backgroundColor: '#ef444418',
+                    border: '2px solid #ef4444',
+                    animation: 'backupPulse 1s ease-in-out infinite',
+                  }}
+                >
+                  <span
+                    className="font-mono font-black uppercase tracking-wider text-center w-full"
+                    style={{ color: '#ef4444', fontSize: '0.72em', lineHeight: 1.4 }}
+                  >
+                    ⚠️ STATION CAPACITY EXCEEDED<br />MULTI-JURISDICTION BACKUP REQUIRED
+                  </span>
+                </div>
+              )}
             </div>
           </div>
 
@@ -229,4 +254,18 @@ export default function LivePreview({ forecast }: LivePreviewProps) {
       </div>
     </div>
   );
+}
+
+// Keyframe for the backup warning flash
+const _style = `
+  @keyframes backupPulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.45; }
+  }
+`;
+if (typeof document !== 'undefined' && !document.getElementById('btp-backup-pulse')) {
+  const s = document.createElement('style');
+  s.id = 'btp-backup-pulse';
+  s.textContent = _style;
+  document.head.appendChild(s);
 }

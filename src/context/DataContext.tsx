@@ -34,6 +34,9 @@ interface DataContextType {
    */
   lastForecast: ForecastResponse | null;
   setLastForecast: (f: ForecastResponse | null) => void;
+  /** Coordinates picked by clicking on the live map, used to auto-fill the form */
+  draftLocation: { lat: number; lng: number } | null;
+  setDraftLocation: (loc: { lat: number; lng: number } | null) => void;
 }
 
 const DataContext = createContext<DataContextType | undefined>(undefined);
@@ -68,6 +71,7 @@ function mapForecastToIncident(event: ForecastResponse): IncidentData {
 export function DataProvider({ children }: { children: ReactNode }) {
   const [incidents, setIncidents] = useState<IncidentData[]>([]);
   const [lastForecast, setLastForecast] = useState<ForecastResponse | null>(null);
+  const [draftLocation, setDraftLocation] = useState<{ lat: number; lng: number } | null>(null);
 
   useEffect(() => {
     if (lastForecast) {
@@ -81,7 +85,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
   }, [lastForecast]);
 
   return (
-    <DataContext.Provider value={{ incidents, lastForecast, setLastForecast }}>
+    <DataContext.Provider value={{ incidents, lastForecast, setLastForecast, draftLocation, setDraftLocation }}>
       {children}
     </DataContext.Provider>
   );

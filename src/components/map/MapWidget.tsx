@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect } from 'react';
-import { MapContainer, TileLayer, CircleMarker, Tooltip, useMap, GeoJSON } from 'react-leaflet';
+import { MapContainer, TileLayer, CircleMarker, Tooltip, useMap, useMapEvents, GeoJSON } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import { useData, type IncidentData } from '@/context/DataContext';
 
@@ -21,6 +21,17 @@ function MapController({ activeNode }: { activeNode: IncidentData | null }) {
   return null;
 }
 
+/** Listens for map clicks and writes the latlng into context so the form can auto-fill */
+function ClickCatcher() {
+  const { setDraftLocation } = useData();
+  useMapEvents({
+    click(e) {
+      setDraftLocation({ lat: e.latlng.lat, lng: e.latlng.lng });
+    },
+  });
+  return null;
+}
+
 interface MapWidgetProps {
   activeNode: IncidentData | null;
   onSelectNode: (node: IncidentData) => void;
@@ -32,7 +43,7 @@ export default function MapWidget({
   onSelectNode,
   accentColor,
 }: MapWidgetProps) {
-  const { incidents, lastForecast } = useData();
+  const { incidents, lastForecast, draftLocation } = useData();
 
   // Bengaluru, India center
   const initialCenter: [number, number] = [12.9716, 77.5946];
@@ -52,6 +63,7 @@ export default function MapWidget({
         />
 
         <MapController activeNode={activeNode} />
+        <ClickCatcher />
 
         {/* ── Mock incident markers ─────────────────────────────────────── */}
         {incidents.map((node) => {
@@ -97,7 +109,39 @@ export default function MapWidget({
           />
         )}
 
+        {/* ── Live forecast: OSRM diversion route (LineString from backend) */}
+        {lastForecast?.deployment_recommendation.diversion_geometry && (
+          <GeoJSON
+            key={`diversion-${lastForecast.event_id}`}
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            data={lastForecast.deployment_recommendation.diversion_geometry as any}
+            style={{
+              color: '#22c55e',
+              weight: 4,
+              opacity: 0.8,
+            }}
+          />
+        )}
 
+        {/* ── Draft location marker (set by map click) ────────────────── */}
+        {draftLocation && (
+          <CircleMarker
+            center={[draftLocation.lat, draftLocation.lng]}
+            radius={8}
+            pathOptions={{
+              color: '#ffffff',
+              fillColor: '#facc15',
+              fillOpacity: 0.9,
+              weight: 2,
+            }}
+          >
+            <Tooltip direction="top" offset={[0, -10]} opacity={1} permanent>
+              <span className="font-mono text-[9px] uppercase font-bold tracking-tighter">
+                PENDING LOCATION
+              </span>
+            </Tooltip>
+          </CircleMarker>
+        )}
       </MapContainer>
     </div>
   );
