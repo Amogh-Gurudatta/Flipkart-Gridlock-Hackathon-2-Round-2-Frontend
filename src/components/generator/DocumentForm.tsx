@@ -140,7 +140,7 @@ export default function DocumentForm({
           className: "font-mono text-xs uppercase",
         });
       },
-      (error) => {
+      () => {
         toast.error("Unable to retrieve location. Please check permissions.", {
           className: "font-mono text-xs uppercase",
         });

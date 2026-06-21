@@ -104,6 +104,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
       const saved = localStorage.getItem("btp_forecast_history");
       if (saved) {
         const parsed = JSON.parse(saved) as ForecastResponse[];
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         setForecastHistory(parsed);
         // Hydrate the map and feeds with the historical data
         setIncidents((prev) => {
@@ -129,7 +130,6 @@ export function DataProvider({ children }: { children: ReactNode }) {
         return [mapForecastToIncident(lastForecast), ...prev];
       });
 
-      // eslint-disable-next-line react-hooks/set-state-in-effect
       setForecastHistory((prev) => {
         if (prev.find((f) => f.event_id === lastForecast.event_id)) return prev;
         const newHistory = [lastForecast, ...prev].slice(0, 50); // Keep last 50 events

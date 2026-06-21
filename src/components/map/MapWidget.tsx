@@ -40,15 +40,15 @@ function MapController({ activeNode }: { activeNode: IncidentData | null }) {
  * location pin.
  */
 function ClickCatcher({
-  markerJustClicked,
+  markerJustClickedRef,
 }: {
-  markerJustClicked: React.MutableRefObject<boolean>;
+  markerJustClickedRef: React.MutableRefObject<boolean>;
 }) {
   const { setDraftLocation } = useData();
   useMapEvents({
     click(e) {
-      if (markerJustClicked.current) {
-        markerJustClicked.current = false;
+      if (markerJustClickedRef.current) {
+        markerJustClickedRef.current = false;
         return;
       }
       setDraftLocation({ lat: e.latlng.lat, lng: e.latlng.lng });
@@ -84,7 +84,7 @@ export default function MapWidget({
 
   // Semaphore: set to true by the marker click handler so ClickCatcher can
   // skip the subsequent (spurious) map-level click that Leaflet always fires.
-  const markerJustClicked = useRef(false);
+  const markerJustClickedRef = useRef(false);
 
   // ESC key clears the pending (draft) location marker
   useEffect(() => {
@@ -113,7 +113,7 @@ export default function MapWidget({
         />
 
         <MapController activeNode={activeNode} />
-        <ClickCatcher markerJustClicked={markerJustClicked} />
+        <ClickCatcher markerJustClickedRef={markerJustClickedRef} />
 
         {/* ── Incident markers ───────────────────────────────────────────── */}
         {incidents.map((node) => {
@@ -134,7 +134,7 @@ export default function MapWidget({
                   // Flag MUST be set before calling onSelectNode so that
                   // ClickCatcher's map-click handler (which fires right after)
                   // sees it and bails out without placing a draft marker.
-                  markerJustClicked.current = true;
+                  markerJustClickedRef.current = true;
                   onSelectNode(node);
                 },
               }}
@@ -158,8 +158,7 @@ export default function MapWidget({
           <GeoJSON
             // key forces re-render whenever the forecast changes
             key={`impact-${displayForecast.event_id}`}
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            data={displayForecast.spatial_impact_geojson as any}
+            data={displayForecast.spatial_impact_geojson as unknown as import('geojson').GeoJsonObject}
             style={{
               color: "#ef4444",
               weight: 1.5,
@@ -174,10 +173,9 @@ export default function MapWidget({
         {displayForecast?.deployment_recommendation.diversion_geometry && (
           <GeoJSON
             key={`diversion-${displayForecast.event_id}`}
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             data={
               displayForecast.deployment_recommendation
-                .diversion_geometry as any
+                .diversion_geometry as unknown as import('geojson').GeoJsonObject
             }
             style={{
               color: "#22c55e",
