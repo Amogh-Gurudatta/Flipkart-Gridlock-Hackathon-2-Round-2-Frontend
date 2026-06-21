@@ -1,7 +1,13 @@
-'use client';
+"use client";
 
-import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
-import type { ForecastResponse } from '@/types/forecast';
+import React, {
+  createContext,
+  useContext,
+  useState,
+  ReactNode,
+  useEffect,
+} from "react";
+import type { ForecastResponse } from "@/types/forecast";
 
 // Maps the BTPEvent schema to the IncidentData shape used across the UI
 export interface IncidentData {
@@ -78,28 +84,39 @@ function mapForecastToIncident(event: ForecastResponse): IncidentData {
 
 export function DataProvider({ children }: { children: ReactNode }) {
   const [incidents, setIncidents] = useState<IncidentData[]>([]);
-  const [lastForecast, setLastForecast] = useState<ForecastResponse | null>(null);
-  const [draftLocation, setDraftLocation] = useState<{ lat: number; lng: number } | null>(null);
-  const [selectedIncidentId, setSelectedIncidentId] = useState<string | null>(null);
-  const [forecastHistory, setForecastHistory] = useState<ForecastResponse[]>([]);
+  const [lastForecast, setLastForecast] = useState<ForecastResponse | null>(
+    null,
+  );
+  const [draftLocation, setDraftLocation] = useState<{
+    lat: number;
+    lng: number;
+  } | null>(null);
+  const [selectedIncidentId, setSelectedIncidentId] = useState<string | null>(
+    null,
+  );
+  const [forecastHistory, setForecastHistory] = useState<ForecastResponse[]>(
+    [],
+  );
 
   // Load history from localStorage on initial mount
   useEffect(() => {
     try {
-      const saved = localStorage.getItem('btp_forecast_history');
+      const saved = localStorage.getItem("btp_forecast_history");
       if (saved) {
         const parsed = JSON.parse(saved) as ForecastResponse[];
         setForecastHistory(parsed);
         // Hydrate the map and feeds with the historical data
         setIncidents((prev) => {
           const historicalIncidents = parsed.map(mapForecastToIncident);
-          const existingIds = new Set(prev.map(i => i.id));
-          const newIncidents = historicalIncidents.filter(i => !existingIds.has(i.id));
+          const existingIds = new Set(prev.map((i) => i.id));
+          const newIncidents = historicalIncidents.filter(
+            (i) => !existingIds.has(i.id),
+          );
           return [...newIncidents, ...prev];
         });
       }
     } catch (e) {
-      console.error('Failed to load forecast history', e);
+      console.error("Failed to load forecast history", e);
     }
   }, []);
 
@@ -108,18 +125,21 @@ export function DataProvider({ children }: { children: ReactNode }) {
       // eslint-disable-next-line react-hooks/set-state-in-effect
       setIncidents((prev) => {
         // Prevent duplicate appending if the same forecast object is passed
-        if (prev.find(i => i.id === lastForecast.event_id)) return prev;
+        if (prev.find((i) => i.id === lastForecast.event_id)) return prev;
         return [mapForecastToIncident(lastForecast), ...prev];
       });
 
       // eslint-disable-next-line react-hooks/set-state-in-effect
       setForecastHistory((prev) => {
-        if (prev.find(f => f.event_id === lastForecast.event_id)) return prev;
+        if (prev.find((f) => f.event_id === lastForecast.event_id)) return prev;
         const newHistory = [lastForecast, ...prev].slice(0, 50); // Keep last 50 events
         try {
-          localStorage.setItem('btp_forecast_history', JSON.stringify(newHistory));
+          localStorage.setItem(
+            "btp_forecast_history",
+            JSON.stringify(newHistory),
+          );
         } catch (e) {
-          console.error('Failed to save forecast history', e);
+          console.error("Failed to save forecast history", e);
         }
         return newHistory;
       });
@@ -127,13 +147,16 @@ export function DataProvider({ children }: { children: ReactNode }) {
   }, [lastForecast]);
 
   const deleteIncident = (id: string) => {
-    setIncidents(prev => prev.filter(i => i.id !== id));
-    setForecastHistory(prev => {
-      const newHistory = prev.filter(f => f.event_id !== id);
+    setIncidents((prev) => prev.filter((i) => i.id !== id));
+    setForecastHistory((prev) => {
+      const newHistory = prev.filter((f) => f.event_id !== id);
       try {
-        localStorage.setItem('btp_forecast_history', JSON.stringify(newHistory));
+        localStorage.setItem(
+          "btp_forecast_history",
+          JSON.stringify(newHistory),
+        );
       } catch (e) {
-        console.error('Failed to update localStorage on delete', e);
+        console.error("Failed to update localStorage on delete", e);
       }
       return newHistory;
     });
@@ -146,7 +169,20 @@ export function DataProvider({ children }: { children: ReactNode }) {
   };
 
   return (
-    <DataContext.Provider value={{ incidents, lastForecast, setLastForecast, draftLocation, setDraftLocation, selectedIncidentId, setSelectedIncidentId, forecastHistory, setForecastHistory, deleteIncident }}>
+    <DataContext.Provider
+      value={{
+        incidents,
+        lastForecast,
+        setLastForecast,
+        draftLocation,
+        setDraftLocation,
+        selectedIncidentId,
+        setSelectedIncidentId,
+        forecastHistory,
+        setForecastHistory,
+        deleteIncident,
+      }}
+    >
       {children}
     </DataContext.Provider>
   );
@@ -155,7 +191,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
 export function useData() {
   const context = useContext(DataContext);
   if (context === undefined) {
-    throw new Error('useData must be used within a DataProvider');
+    throw new Error("useData must be used within a DataProvider");
   }
   return context;
 }

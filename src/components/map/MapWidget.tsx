@@ -1,9 +1,17 @@
-'use client';
+"use client";
 
-import { useEffect, useRef } from 'react';
-import { MapContainer, TileLayer, CircleMarker, Tooltip, useMap, useMapEvents, GeoJSON } from 'react-leaflet';
-import 'leaflet/dist/leaflet.css';
-import { useData, type IncidentData } from '@/context/DataContext';
+import { useEffect, useRef } from "react";
+import {
+  MapContainer,
+  TileLayer,
+  CircleMarker,
+  Tooltip,
+  useMap,
+  useMapEvents,
+  GeoJSON,
+} from "react-leaflet";
+import "leaflet/dist/leaflet.css";
+import { useData, type IncidentData } from "@/context/DataContext";
 
 // Custom controller to handle smooth panning when activeNode changes
 function MapController({ activeNode }: { activeNode: IncidentData | null }) {
@@ -60,7 +68,13 @@ export default function MapWidget({
   onSelectNode,
   accentColor,
 }: MapWidgetProps) {
-  const { incidents, lastForecast, draftLocation, setDraftLocation, forecastHistory } = useData();
+  const {
+    incidents,
+    lastForecast,
+    draftLocation,
+    setDraftLocation,
+    forecastHistory,
+  } = useData();
 
   // Determine which forecast's spatial data to show.
   // Prefer the currently selected node's data from history, fallback to the latest forecast.
@@ -75,10 +89,10 @@ export default function MapWidget({
   // ESC key clears the pending (draft) location marker
   useEffect(() => {
     const onKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') setDraftLocation(null);
+      if (e.key === "Escape") setDraftLocation(null);
     };
-    window.addEventListener('keydown', onKeyDown);
-    return () => window.removeEventListener('keydown', onKeyDown);
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
   }, [setDraftLocation]);
 
   // Bengaluru, India center
@@ -90,7 +104,7 @@ export default function MapWidget({
         center={initialCenter}
         zoom={12}
         zoomControl={false}
-        style={{ height: '100%', width: '100%', background: 'transparent' }}
+        style={{ height: "100%", width: "100%", background: "transparent" }}
         attributionControl={false}
       >
         <TileLayer
@@ -125,7 +139,12 @@ export default function MapWidget({
                 },
               }}
             >
-              <Tooltip direction="top" offset={[0, -10]} opacity={1} permanent={isActive}>
+              <Tooltip
+                direction="top"
+                offset={[0, -10]}
+                opacity={1}
+                permanent={isActive}
+              >
                 <span className="font-mono text-[9px] uppercase font-bold tracking-tighter">
                   {node.incident_type || node.id}
                 </span>
@@ -142,11 +161,11 @@ export default function MapWidget({
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             data={displayForecast.spatial_impact_geojson as any}
             style={{
-              color: '#ef4444',
+              color: "#ef4444",
               weight: 1.5,
-              fillColor: '#ef4444',
+              fillColor: "#ef4444",
               fillOpacity: 0.12,
-              dashArray: '4 4',
+              dashArray: "4 4",
             }}
           />
         )}
@@ -156,9 +175,12 @@ export default function MapWidget({
           <GeoJSON
             key={`diversion-${displayForecast.event_id}`}
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            data={displayForecast.deployment_recommendation.diversion_geometry as any}
+            data={
+              displayForecast.deployment_recommendation
+                .diversion_geometry as any
+            }
             style={{
-              color: '#22c55e',
+              color: "#22c55e",
               weight: 4,
               opacity: 0.8,
             }}
@@ -171,8 +193,8 @@ export default function MapWidget({
             center={[draftLocation.lat, draftLocation.lng]}
             radius={8}
             pathOptions={{
-              color: '#ffffff',
-              fillColor: '#facc15',
+              color: "#ffffff",
+              fillColor: "#facc15",
               fillOpacity: 0.9,
               weight: 2,
             }}

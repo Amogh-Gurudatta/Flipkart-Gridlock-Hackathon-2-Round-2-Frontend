@@ -92,30 +92,30 @@ export default function GeneratorPage() {
         backgroundColor: "#060d1a",
         onclone: (clonedDoc) => {
           // Fix html2canvas font baseline bugs without breaking the live preview UI
-          const heads = clonedDoc.querySelectorAll('.pdf-adjust-head');
-          heads.forEach(b => {
-            (b as HTMLElement).style.paddingTop = '0px';
-            (b as HTMLElement).style.paddingBottom = '3%';
+          const heads = clonedDoc.querySelectorAll(".pdf-adjust-head");
+          heads.forEach((b) => {
+            (b as HTMLElement).style.paddingTop = "0px";
+            (b as HTMLElement).style.paddingBottom = "3%";
           });
 
-          const badges = clonedDoc.querySelectorAll('.pdf-adjust-badge');
-          badges.forEach(b => {
-            (b as HTMLElement).style.paddingTop = '0px';
-            (b as HTMLElement).style.paddingBottom = '8px';
+          const badges = clonedDoc.querySelectorAll(".pdf-adjust-badge");
+          badges.forEach((b) => {
+            (b as HTMLElement).style.paddingTop = "0px";
+            (b as HTMLElement).style.paddingBottom = "8px";
           });
 
-          const divs = clonedDoc.querySelectorAll('.pdf-adjust-div');
-          divs.forEach(b => {
-            (b as HTMLElement).style.paddingTop = '0px';
-            (b as HTMLElement).style.paddingBottom = '10px';
+          const divs = clonedDoc.querySelectorAll(".pdf-adjust-div");
+          divs.forEach((b) => {
+            (b as HTMLElement).style.paddingTop = "0px";
+            (b as HTMLElement).style.paddingBottom = "10px";
           });
 
-          const backups = clonedDoc.querySelectorAll('.pdf-adjust-backup');
-          backups.forEach(b => {
-            (b as HTMLElement).style.paddingTop = '0px';
-            (b as HTMLElement).style.paddingBottom = '4%';
+          const backups = clonedDoc.querySelectorAll(".pdf-adjust-backup");
+          backups.forEach((b) => {
+            (b as HTMLElement).style.paddingTop = "0px";
+            (b as HTMLElement).style.paddingBottom = "4%";
           });
-        }
+        },
       });
 
       const imgData = canvas.toDataURL("image/png");

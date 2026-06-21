@@ -127,18 +127,24 @@ export default function DocumentForm({
       toast.error("Geolocation is not supported by your browser");
       return;
     }
-    
-    toast.info("Requesting location access...", { className: "font-mono text-xs uppercase" });
-    
+
+    toast.info("Requesting location access...", {
+      className: "font-mono text-xs uppercase",
+    });
+
     navigator.geolocation.getCurrentPosition(
       (position) => {
         setLat(position.coords.latitude.toFixed(6));
         setLng(position.coords.longitude.toFixed(6));
-        toast.success("Location retrieved", { className: "font-mono text-xs uppercase" });
+        toast.success("Location retrieved", {
+          className: "font-mono text-xs uppercase",
+        });
       },
       (error) => {
-        toast.error("Unable to retrieve location. Please check permissions.", { className: "font-mono text-xs uppercase" });
-      }
+        toast.error("Unable to retrieve location. Please check permissions.", {
+          className: "font-mono text-xs uppercase",
+        });
+      },
     );
   };
 
@@ -315,7 +321,10 @@ export default function DocumentForm({
           />
         </div>
       </div>
-      <div className="flex justify-between items-center" style={{ marginTop: "-8px" }}>
+      <div
+        className="flex justify-between items-center"
+        style={{ marginTop: "-8px" }}
+      >
         <p
           className="text-[9px] font-mono tracking-wider"
           style={{ color: "var(--text-muted)" }}
