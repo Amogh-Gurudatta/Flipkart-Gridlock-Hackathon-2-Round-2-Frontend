@@ -36,7 +36,7 @@ function Row({
         initial={{ opacity: 0.4 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 0.15 }}
-        className="font-mono font-bold uppercase tracking-wider text-right"
+        className="font-mono font-bold uppercase tracking-wider text-right break-words max-w-[65%]"
         style={{ color: highlight ?? '#e2e8f0', fontSize: '0.9em' }}
       >
         {value}
@@ -102,7 +102,7 @@ export default function LivePreview({ forecast }: LivePreviewProps) {
             </div>
 
             <div
-              className="text-center font-mono font-bold uppercase tracking-[0.25em] py-[1.5%] mt-[2%]"
+              className="pdf-adjust-head flex items-center justify-center text-center font-mono font-bold uppercase tracking-[0.25em] py-[1.5%] px-[2%] mt-[2%] break-words"
               style={{ color: '#1d4ed8', fontSize: '0.95em', backgroundColor: '#0f1f3d', border: '1px solid #1e3a5f' }}
             >
               TRAFFIC EVENT DEPLOYMENT ORDER
@@ -138,7 +138,7 @@ export default function LivePreview({ forecast }: LivePreviewProps) {
                   Severity Level:
                 </span>
                 <span
-                  className="font-mono font-bold uppercase tracking-widest px-3 py-0.5"
+                  className="pdf-adjust-badge inline-flex items-center justify-center text-center font-mono font-bold uppercase tracking-widest px-3 py-0.5 break-words"
                   style={{
                     color: severityColor,
                     backgroundColor: `${severityColor}18`,
@@ -183,7 +183,7 @@ export default function LivePreview({ forecast }: LivePreviewProps) {
                   Diversion:
                 </span>
                 <span
-                  className="font-mono font-bold uppercase tracking-wider px-2 py-0.5 text-right max-w-[55%]"
+                  className="pdf-adjust-div inline-flex items-center justify-center text-center font-mono font-bold uppercase tracking-wider px-2 py-0.5 max-w-[55%] break-words"
                   style={{
                     color: isCriticalOrHigh ? '#ef4444' : '#22c55e',
                     backgroundColor: isCriticalOrHigh ? '#ef444415' : '#22c55e15',
@@ -204,7 +204,7 @@ export default function LivePreview({ forecast }: LivePreviewProps) {
               {/* Multi-jurisdiction backup alert */}
               {forecast?.deployment_recommendation.needs_backup && (
                 <div
-                  className="flex items-center gap-2 p-[2%] mt-[1%]"
+                  className="pdf-adjust-backup flex items-center gap-2 p-[2%] mt-[1%]"
                   style={{
                     backgroundColor: '#ef444418',
                     border: '2px solid #ef4444',
@@ -212,10 +212,11 @@ export default function LivePreview({ forecast }: LivePreviewProps) {
                   }}
                 >
                   <span
-                    className="font-mono font-black uppercase tracking-wider text-center w-full"
+                    className="flex flex-col items-center justify-center font-mono font-black uppercase tracking-wider text-center w-full break-words"
                     style={{ color: '#ef4444', fontSize: '0.72em', lineHeight: 1.4 }}
                   >
-                    ⚠️ STATION CAPACITY EXCEEDED<br />MULTI-JURISDICTION BACKUP REQUIRED
+                    <span>⚠️ STATION CAPACITY EXCEEDED</span>
+                    <span>MULTI-JURISDICTION BACKUP REQUIRED</span>
                   </span>
                 </div>
               )}
@@ -237,8 +238,8 @@ export default function LivePreview({ forecast }: LivePreviewProps) {
             className="absolute top-1/2 left-1/2 pointer-events-none z-20"
             style={{ transform: 'translate(-50%, -50%) rotate(-12deg)', opacity: 0.18, width: '75%' }}
           >
-            <svg width="100%" height="auto" viewBox="0 0 400 120">
-              <rect x="5" y="5" width="390" height="110" fill="none" stroke="#1d4ed8" strokeWidth="10" />
+            <svg width="100%" height="auto" viewBox="0 0 440 120">
+              <rect x="5" y="5" width="430" height="110" fill="none" stroke="#1d4ed8" strokeWidth="10" />
               <text
                 x="50%" y="52%"
                 dominantBaseline="middle"
