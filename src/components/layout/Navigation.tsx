@@ -177,9 +177,6 @@ export default function Navigation() {
           <p className="text-[9px] font-mono uppercase tracking-[0.12em]" style={{ color: 'var(--text-muted)', opacity: 0.5 }}>
             Flipkart Grid 2.0 — Round 2
           </p>
-          <p className="text-[9px] font-mono mt-0.5" style={{ color: 'var(--text-muted)', opacity: 0.4 }}>
-            12.9716° N, 77.5946° E
-          </p>
         </div>
       </aside>
     </>

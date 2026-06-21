@@ -9,6 +9,8 @@ import {
 } from "@/types/forecast";
 import type { EventRequest } from "@/types/forecast";
 import { useData } from "@/context/DataContext";
+import { toast } from "sonner";
+import { MapPin } from "lucide-react";
 
 interface DocumentFormProps {
   isSubmitting: boolean;
@@ -118,6 +120,26 @@ export default function DocumentForm({
     e: React.FocusEvent<HTMLInputElement | HTMLSelectElement>,
   ) => {
     e.target.style.borderColor = "var(--border-color)";
+  };
+
+  const handleUseCurrentLocation = () => {
+    if (!navigator.geolocation) {
+      toast.error("Geolocation is not supported by your browser");
+      return;
+    }
+    
+    toast.info("Requesting location access...", { className: "font-mono text-xs uppercase" });
+    
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        setLat(position.coords.latitude.toFixed(6));
+        setLng(position.coords.longitude.toFixed(6));
+        toast.success("Location retrieved", { className: "font-mono text-xs uppercase" });
+      },
+      (error) => {
+        toast.error("Unable to retrieve location. Please check permissions.", { className: "font-mono text-xs uppercase" });
+      }
+    );
   };
 
   const isReady =
@@ -293,12 +315,23 @@ export default function DocumentForm({
           />
         </div>
       </div>
-      <p
-        className="text-[9px] font-mono tracking-wider"
-        style={{ color: "var(--text-muted)", marginTop: "-8px" }}
-      >
-        ✦ Tip: Click on the Live Map to auto-fill coordinates
-      </p>
+      <div className="flex justify-between items-center" style={{ marginTop: "-8px" }}>
+        <p
+          className="text-[9px] font-mono tracking-wider"
+          style={{ color: "var(--text-muted)" }}
+        >
+          ✦ Tip: Click Live Map to auto-fill
+        </p>
+        <button
+          type="button"
+          onClick={handleUseCurrentLocation}
+          className="text-[9px] font-mono font-bold uppercase tracking-wider flex items-center gap-1 transition-opacity duration-200 hover:opacity-80 cursor-pointer"
+          style={{ color: "var(--accent-primary)" }}
+        >
+          <MapPin size={10} />
+          Use My Location
+        </button>
+      </div>
 
       {/* Get Forecast */}
       <button
