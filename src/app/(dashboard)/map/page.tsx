@@ -2,7 +2,6 @@
 
 import { useMemo } from 'react';
 import dynamic from 'next/dynamic';
-import { useRouter } from 'next/navigation';
 import IncidentFeed from '@/components/map/IncidentFeed';
 import { useData, type IncidentData } from '@/context/DataContext';
 
@@ -20,7 +19,6 @@ const MapWidget = dynamic(() => import('@/components/map/MapWidget'), {
 
 export default function MapPage() {
   const { incidents, selectedIncidentId, setSelectedIncidentId } = useData();
-  const router = useRouter();
 
   // Derive the active node from shared context so the warrants page can drive it too
   const activeNode = useMemo(
@@ -30,10 +28,10 @@ export default function MapPage() {
 
   const accentColor = 'var(--accent-primary)';
 
-  // Clicking a circle or feed card selects the incident and opens it in the dispatch log
+  // Clicking a circle or feed card highlights the incident on the map only.
+  // Navigation to /warrants is intentionally one-way (warrants page → map), not vice-versa.
   const handleSelectNode = (node: IncidentData) => {
     setSelectedIncidentId(node.id === selectedIncidentId ? null : node.id);
-    router.push('/warrants');
   };
 
   return (

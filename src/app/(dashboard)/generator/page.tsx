@@ -14,7 +14,7 @@ const API_URL = (
 ).replace(/\/$/, "");
 
 export default function GeneratorPage() {
-  const { setLastForecast } = useData();
+  const { setLastForecast, setDraftLocation } = useData();
   const [forecast, setForecast] = useState<ForecastResponse | null>(null);
   const [forecastPending, setForecastPending] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
@@ -39,6 +39,7 @@ export default function GeneratorPage() {
       const data: ForecastResponse = await res.json();
       setForecast(data);
       setLastForecast(data); // push to DataContext → MapWidget renders the overlay
+      setDraftLocation(null); // clear the pending location pin now that the forecast is live
 
       toast.success("FORECAST RECEIVED", {
         description: `Event ${data.event_id} — ${data.predictions.severity_level} severity, ~${Math.round(data.predictions.estimated_duration_mins)} min`,
