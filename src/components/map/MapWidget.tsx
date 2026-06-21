@@ -43,7 +43,16 @@ export default function MapWidget({
   onSelectNode,
   accentColor,
 }: MapWidgetProps) {
-  const { incidents, lastForecast, draftLocation } = useData();
+  const { incidents, lastForecast, draftLocation, setDraftLocation } = useData();
+
+  // ESC key clears the pending (draft) location marker
+  useEffect(() => {
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setDraftLocation(null);
+    };
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, [setDraftLocation]);
 
   // Bengaluru, India center
   const initialCenter: [number, number] = [12.9716, 77.5946];
@@ -80,7 +89,12 @@ export default function MapWidget({
                 weight: isActive ? 2 : 1,
               }}
               eventHandlers={{
-                click: () => onSelectNode(node),
+                click: (e) => {
+                  // Prevent the map-level click handler (ClickCatcher) from
+                  // firing and placing a pending-location marker.
+                  e.originalEvent.stopPropagation();
+                  onSelectNode(node);
+                },
               }}
             >
               <Tooltip direction="top" offset={[0, -10]} opacity={1} permanent={isActive}>

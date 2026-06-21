@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useMemo } from 'react';
+import { useRouter } from 'next/navigation';
 import { useData, type IncidentData } from '@/context/DataContext';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Search, SortAsc, SortDesc, MapPin, Clock, Users, Shield } from 'lucide-react';
@@ -50,7 +51,8 @@ function StatCard({ icon: Icon, label, value, color }: {
 
 // ── Main page ─────────────────────────────────────────────────────────────────
 export default function DispatchLogsPage() {
-  const { incidents } = useData();
+  const { incidents, selectedIncidentId, setSelectedIncidentId } = useData();
+  const router = useRouter();
   const [query, setQuery] = useState('');
   const [severityFilter, setSeverityFilter] = useState<SeverityFilter>('ALL');
   const [sortOrder, setSortOrder] = useState<'DURATION_ASC' | 'DURATION_DESC' | 'SEVERITY'>('SEVERITY');
@@ -217,10 +219,24 @@ export default function DispatchLogsPage() {
                       exit={{ opacity: 0, x: 10 }}
                       transition={{ delay: i * 0.04 }}
                       layout
-                      className="group transition-colors duration-150"
-                      style={{ borderBottom: '1px solid color-mix(in srgb, var(--border-color) 60%, transparent)' }}
-                      onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.03)')}
-                      onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
+                      className="group transition-colors duration-150 cursor-pointer"
+                      style={{
+                        borderBottom: '1px solid color-mix(in srgb, var(--border-color) 60%, transparent)',
+                        borderLeft: ev.id === selectedIncidentId ? '3px solid var(--accent-primary)' : '3px solid transparent',
+                        backgroundColor: ev.id === selectedIncidentId ? 'color-mix(in srgb, var(--accent-primary) 6%, transparent)' : 'transparent',
+                      }}
+                      onClick={() => {
+                        setSelectedIncidentId(ev.id === selectedIncidentId ? null : ev.id);
+                        if (ev.id !== selectedIncidentId) router.push('/map');
+                      }}
+                      onMouseEnter={(e) => {
+                        if (ev.id !== selectedIncidentId)
+                          e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.03)';
+                      }}
+                      onMouseLeave={(e) => {
+                        if (ev.id !== selectedIncidentId)
+                          e.currentTarget.style.backgroundColor = 'transparent';
+                      }}
                     >
                       {/* Event ID */}
                       <td className="p-4">

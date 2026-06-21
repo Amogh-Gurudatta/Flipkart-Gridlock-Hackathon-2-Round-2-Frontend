@@ -37,6 +37,9 @@ interface DataContextType {
   /** Coordinates picked by clicking on the live map, used to auto-fill the form */
   draftLocation: { lat: number; lng: number } | null;
   setDraftLocation: (loc: { lat: number; lng: number } | null) => void;
+  /** The incident currently selected across the map and dispatch log */
+  selectedIncidentId: string | null;
+  setSelectedIncidentId: (id: string | null) => void;
 }
 
 const DataContext = createContext<DataContextType | undefined>(undefined);
@@ -72,6 +75,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
   const [incidents, setIncidents] = useState<IncidentData[]>([]);
   const [lastForecast, setLastForecast] = useState<ForecastResponse | null>(null);
   const [draftLocation, setDraftLocation] = useState<{ lat: number; lng: number } | null>(null);
+  const [selectedIncidentId, setSelectedIncidentId] = useState<string | null>(null);
 
   useEffect(() => {
     if (lastForecast) {
@@ -85,7 +89,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
   }, [lastForecast]);
 
   return (
-    <DataContext.Provider value={{ incidents, lastForecast, setLastForecast, draftLocation, setDraftLocation }}>
+    <DataContext.Provider value={{ incidents, lastForecast, setLastForecast, draftLocation, setDraftLocation, selectedIncidentId, setSelectedIncidentId }}>
       {children}
     </DataContext.Provider>
   );

@@ -1,9 +1,10 @@
 'use client';
 
-import { useState } from 'react';
+import { useMemo } from 'react';
 import dynamic from 'next/dynamic';
+import { useRouter } from 'next/navigation';
 import IncidentFeed from '@/components/map/IncidentFeed';
-import { type IncidentData } from '@/context/DataContext';
+import { useData, type IncidentData } from '@/context/DataContext';
 
 // Dynamically import the map widget with ssr: false to prevent Leaflet from crashing the server
 const MapWidget = dynamic(() => import('@/components/map/MapWidget'), {
@@ -18,12 +19,21 @@ const MapWidget = dynamic(() => import('@/components/map/MapWidget'), {
 });
 
 export default function MapPage() {
-  const [activeNode, setActiveNode] = useState<IncidentData | null>(null);
+  const { incidents, selectedIncidentId, setSelectedIncidentId } = useData();
+  const router = useRouter();
+
+  // Derive the active node from shared context so the warrants page can drive it too
+  const activeNode = useMemo(
+    () => incidents.find((i) => i.id === selectedIncidentId) ?? null,
+    [incidents, selectedIncidentId],
+  );
 
   const accentColor = 'var(--accent-primary)';
 
+  // Clicking a circle or feed card selects the incident and opens it in the dispatch log
   const handleSelectNode = (node: IncidentData) => {
-    setActiveNode((prev) => (prev?.id === node.id ? null : node));
+    setSelectedIncidentId(node.id === selectedIncidentId ? null : node.id);
+    router.push('/warrants');
   };
 
   return (
