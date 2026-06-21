@@ -59,7 +59,7 @@ export default function IncidentFeed({
 
   return (
     <div
-      className={`absolute top-4 md:top-6 right-4 md:right-6 w-[calc(100%-2rem)] md:w-80 z-[1000] flex flex-col transition-all duration-300 ${
+      className={`absolute top-4 md:top-6 right-4 md:right-6 w-[calc(100%-2rem)] md:w-80 z-1000 flex flex-col transition-all duration-300 ${
         isExpanded ? "max-h-[85vh]" : "max-h-[48px] md:max-h-[calc(100vh-48px)]"
       }`}
       style={{
