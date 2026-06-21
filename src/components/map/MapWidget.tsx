@@ -60,7 +60,13 @@ export default function MapWidget({
   onSelectNode,
   accentColor,
 }: MapWidgetProps) {
-  const { incidents, lastForecast, draftLocation, setDraftLocation } = useData();
+  const { incidents, lastForecast, draftLocation, setDraftLocation, forecastHistory } = useData();
+
+  // Determine which forecast's spatial data to show.
+  // Prefer the currently selected node's data from history, fallback to the latest forecast.
+  const displayForecast = activeNode
+    ? forecastHistory.find((f) => f.event_id === activeNode.id) || lastForecast
+    : lastForecast;
 
   // Semaphore: set to true by the marker click handler so ClickCatcher can
   // skip the subsequent (spurious) map-level click that Leaflet always fires.
@@ -129,12 +135,12 @@ export default function MapWidget({
         })}
 
         {/* ── Live forecast: spatial impact zone (polygon from backend) ─── */}
-        {lastForecast?.spatial_impact_geojson && (
+        {displayForecast?.spatial_impact_geojson && (
           <GeoJSON
             // key forces re-render whenever the forecast changes
-            key={`impact-${lastForecast.event_id}`}
+            key={`impact-${displayForecast.event_id}`}
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            data={lastForecast.spatial_impact_geojson as any}
+            data={displayForecast.spatial_impact_geojson as any}
             style={{
               color: '#ef4444',
               weight: 1.5,
@@ -146,11 +152,11 @@ export default function MapWidget({
         )}
 
         {/* ── Live forecast: OSRM diversion route (LineString from backend) */}
-        {lastForecast?.deployment_recommendation.diversion_geometry && (
+        {displayForecast?.deployment_recommendation.diversion_geometry && (
           <GeoJSON
-            key={`diversion-${lastForecast.event_id}`}
+            key={`diversion-${displayForecast.event_id}`}
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            data={lastForecast.deployment_recommendation.diversion_geometry as any}
+            data={displayForecast.deployment_recommendation.diversion_geometry as any}
             style={{
               color: '#22c55e',
               weight: 4,
