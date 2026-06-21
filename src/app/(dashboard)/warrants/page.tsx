@@ -4,7 +4,7 @@ import { useState, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { useData, type IncidentData } from '@/context/DataContext';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Search, SortAsc, SortDesc, MapPin, Clock, Users, Shield } from 'lucide-react';
+import { Search, SortAsc, SortDesc, MapPin, Clock, Users, Shield, Trash2 } from 'lucide-react';
 
 // ── Severity meta ─────────────────────────────────────────────────────────────
 const SEVERITY_LEVELS = ['ALL', 'LOW', 'MODERATE', 'HIGH', 'CRITICAL'] as const;
@@ -51,7 +51,7 @@ function StatCard({ icon: Icon, label, value, color }: {
 
 // ── Main page ─────────────────────────────────────────────────────────────────
 export default function DispatchLogsPage() {
-  const { incidents, selectedIncidentId, setSelectedIncidentId } = useData();
+  const { incidents, selectedIncidentId, setSelectedIncidentId, deleteIncident } = useData();
   const router = useRouter();
   const [query, setQuery] = useState('');
   const [severityFilter, setSeverityFilter] = useState<SeverityFilter>('ALL');
@@ -206,6 +206,7 @@ export default function DispatchLogsPage() {
                 <th className="p-4">Severity</th>
                 <th className="p-4 text-right">Est. Duration</th>
                 <th className="p-4 text-right">Recommended Deployment</th>
+                <th className="p-4 w-12 text-center"></th>
               </tr>
             </thead>
             <tbody>
@@ -295,12 +296,27 @@ export default function DispatchLogsPage() {
                           </span>
                         </div>
                       </td>
+                      
+                      {/* Delete Action */}
+                      <td className="p-4 text-center">
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            deleteIncident(ev.id);
+                          }}
+                          className="p-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 hover:bg-red-500/10 hover:text-red-500 rounded cursor-pointer"
+                          style={{ color: 'var(--text-muted)' }}
+                          title="Delete event"
+                        >
+                          <Trash2 size={14} />
+                        </button>
+                      </td>
                     </motion.tr>
                   ))
                 ) : (
                   <motion.tr initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
                     <td
-                      colSpan={6}
+                      colSpan={7}
                       className="p-20 text-center text-[10px] uppercase tracking-[0.3em]"
                       style={{ color: 'var(--text-muted)' }}
                     >

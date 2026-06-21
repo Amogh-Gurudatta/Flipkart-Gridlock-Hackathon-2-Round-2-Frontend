@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useData, type IncidentData } from '@/context/DataContext';
-import { Crosshair, ChevronDown, ChevronUp, AlertTriangle } from 'lucide-react';
+import { Crosshair, ChevronDown, ChevronUp, AlertTriangle, Trash2 } from 'lucide-react';
 import dynamic from 'next/dynamic';
 
 // Dynamically import recharts-based chart (avoids SSR issues)
@@ -35,7 +35,7 @@ const SEVERITY_BADGE_COLORS: Record<string, { color: string; bg: string; border:
 
 
 export default function IncidentFeed({ onSelectNode, activeId }: IncidentFeedProps) {
-  const { incidents } = useData();
+  const { incidents, deleteIncident } = useData();
   const [isExpanded, setIsExpanded] = useState(false);
 
 
@@ -94,7 +94,19 @@ export default function IncidentFeed({ onSelectNode, activeId }: IncidentFeedPro
           };
 
           return (
-            <div key={node.id}>
+            <div key={node.id} className="relative group">
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  deleteIncident(node.id);
+                }}
+                className="absolute top-2 right-2 p-1.5 opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-10 cursor-pointer hover:bg-red-500/10 hover:text-red-500 hover:border-red-500/50"
+                style={{ color: 'var(--text-muted)', backgroundColor: 'var(--bg-base)', border: '1px solid var(--border-color)', borderRadius: '4px' }}
+                title="Delete event"
+              >
+                <Trash2 size={12} />
+              </button>
+              
               <button
                 onClick={() => handleSelect(node)}
                 className="w-full text-left p-3 cursor-pointer transition-all duration-200"
@@ -108,7 +120,7 @@ export default function IncidentFeed({ onSelectNode, activeId }: IncidentFeedPro
                 }}
               >
                 {/* ID row + severity badge */}
-                <div className="flex justify-between items-start mb-1">
+                <div className="flex justify-between items-start mb-1 pr-6">
                   <span
                     className="text-[10px] font-mono tracking-widest font-bold flex items-center gap-1"
                     style={{ color: isActive ? 'var(--accent-primary)' : 'var(--text-muted)' }}
