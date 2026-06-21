@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { MapContainer, TileLayer, CircleMarker, Tooltip, useMap, useMapEvents, GeoJSON } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import { useData, type IncidentData } from '@/context/DataContext';
@@ -21,11 +21,28 @@ function MapController({ activeNode }: { activeNode: IncidentData | null }) {
   return null;
 }
 
-/** Listens for map clicks and writes the latlng into context so the form can auto-fill */
-function ClickCatcher() {
+/**
+ * Listens for map-level clicks and writes the latlng into context so the
+ * Forecast Engine form can auto-fill the location.
+ *
+ * `markerJustClicked` is a ref owned by MapWidget. The marker's own click
+ * handler sets it to `true` synchronously before the map click fires (Leaflet
+ * always dispatches layer events before map events in the same tick). We check
+ * and reset the flag here so that clicking a circle never also places a draft
+ * location pin.
+ */
+function ClickCatcher({
+  markerJustClicked,
+}: {
+  markerJustClicked: React.MutableRefObject<boolean>;
+}) {
   const { setDraftLocation } = useData();
   useMapEvents({
     click(e) {
+      if (markerJustClicked.current) {
+        markerJustClicked.current = false;
+        return;
+      }
       setDraftLocation({ lat: e.latlng.lat, lng: e.latlng.lng });
     },
   });
@@ -44,6 +61,10 @@ export default function MapWidget({
   accentColor,
 }: MapWidgetProps) {
   const { incidents, lastForecast, draftLocation, setDraftLocation } = useData();
+
+  // Semaphore: set to true by the marker click handler so ClickCatcher can
+  // skip the subsequent (spurious) map-level click that Leaflet always fires.
+  const markerJustClicked = useRef(false);
 
   // ESC key clears the pending (draft) location marker
   useEffect(() => {
@@ -72,9 +93,9 @@ export default function MapWidget({
         />
 
         <MapController activeNode={activeNode} />
-        <ClickCatcher />
+        <ClickCatcher markerJustClicked={markerJustClicked} />
 
-        {/* ── Mock incident markers ─────────────────────────────────────── */}
+        {/* ── Incident markers ───────────────────────────────────────────── */}
         {incidents.map((node) => {
           const isActive = activeNode?.id === node.id;
           return (
@@ -89,10 +110,11 @@ export default function MapWidget({
                 weight: isActive ? 2 : 1,
               }}
               eventHandlers={{
-                click: (e) => {
-                  // Prevent the map-level click handler (ClickCatcher) from
-                  // firing and placing a pending-location marker.
-                  e.originalEvent.stopPropagation();
+                click: () => {
+                  // Flag MUST be set before calling onSelectNode so that
+                  // ClickCatcher's map-click handler (which fires right after)
+                  // sees it and bails out without placing a draft marker.
+                  markerJustClicked.current = true;
                   onSelectNode(node);
                 },
               }}
