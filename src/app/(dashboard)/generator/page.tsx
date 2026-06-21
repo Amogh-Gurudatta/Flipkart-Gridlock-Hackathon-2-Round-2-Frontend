@@ -164,20 +164,23 @@ export default function GeneratorPage() {
 
   return (
     <div
-      className="min-h-screen relative p-6 pt-20 lg:p-12 lg:pt-12 pb-24 overflow-y-auto"
+      className="min-h-screen p-6 pt-24 lg:p-12 lg:pt-28 pb-24 overflow-y-auto"
       style={{ backgroundColor: "var(--bg-base)" }}
     >
-      <div className="max-w-7xl mx-auto flex flex-col gap-6">
-        {/* Header */}
-        <div>
+      <div className="max-w-7xl mx-auto space-y-8">
+        {/* ── Page Header ─────────────────────────────────────────────── */}
+        <div
+          className="border-l-4 pl-6"
+          style={{ borderColor: "var(--accent-primary)" }}
+        >
           <h1
-            className="text-xl font-mono tracking-[0.3em] uppercase mb-2"
+            className="text-2xl font-mono font-bold uppercase tracking-[0.3em] mb-1"
             style={{ color: "var(--text-primary)" }}
           >
             Deployment Order Generator
           </h1>
           <p
-            className="text-xs font-mono tracking-widest uppercase opacity-70"
+            className="text-xs font-mono uppercase tracking-widest"
             style={{ color: "var(--text-muted)" }}
           >
             Submit an event to the AI forecast engine, then export an official
