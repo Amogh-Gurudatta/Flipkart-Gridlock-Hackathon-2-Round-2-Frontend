@@ -28,6 +28,9 @@ export interface ForecastResponse {
     cranes: number;
     diversion_route: string;
     diversion_geometry: GeoJsonLineString | null;
+    total_cops_required: number;
+    total_barricades_required: number;
+    total_cranes_required: number;
     needs_backup: boolean;
     responding_station: string;
   };
