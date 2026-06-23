@@ -17,8 +17,8 @@ export interface EventRequest {
 export interface ForecastResponse {
   event_id: string;
   cause: string;
-  priority?: string;
-  corridor?: string;
+  priority: string;
+  corridor: string;
   location: { lat: number; lng: number; address: string };
   predictions: {
     estimated_duration_mins: number;
