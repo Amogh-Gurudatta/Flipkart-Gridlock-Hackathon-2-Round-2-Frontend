@@ -172,8 +172,6 @@ export default function LivePreview({ forecast }: LivePreviewProps) {
             </div>
             <div className="flex flex-col gap-[0.9em]">
               <Row label="Cause" value={forecast?.cause ?? "—"} />
-              <Row label="Priority" value={forecast?.priority ?? "—"} />
-              <Row label="Corridor" value={forecast?.corridor ?? "—"} />
               <Row label="Location" value={forecast?.location.address ?? "—"} />
               <Row
                 label="Coordinates"
